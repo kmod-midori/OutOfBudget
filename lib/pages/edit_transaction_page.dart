@@ -58,6 +58,9 @@ class EditTransactionPage extends HookWidget {
     }
     var amountSign = useState(initialSign);
 
+    var txnDate = useState(transactionData?.date ?? DateTime.now());
+    var txnDateLocal = txnDate.value.toLocal();
+
     var txnBuilder = transactionData?.toBuilder() ?? MyTransactionBuilder();
 
     var body = Form(
@@ -139,6 +142,26 @@ class EditTransactionPage extends HookWidget {
             showSelectedIcon: false,
           ),
           const SizedBox(height: 16.0),
+          ElevatedButton.icon(
+            onPressed: () async {
+              var value = await showDatePicker(
+                context: context,
+                initialDate: txnBuilder.date ?? DateTime.now(),
+                firstDate: DateTime(2000),
+                lastDate: DateTime.now(),
+              );
+
+              if (value == null) {
+                return;
+              }
+
+              txnDate.value = value;
+            },
+            label: Text(
+              "${txnDateLocal.year}年${txnDateLocal.month}月${txnDateLocal.day}日",
+            ),
+            icon: const Icon(Icons.calendar_today),
+          ),
           TextFormField(
             decoration: const InputDecoration(
               label: Text("备注"),
@@ -164,9 +187,10 @@ class EditTransactionPage extends HookWidget {
                 return;
               }
               _formKey.currentState!.save();
+
               txnBuilder.kind ??= TransactionKind.normal;
               txnBuilder.id ??= nanoid();
-              txnBuilder.date ??= DateTime.now().toUtc();
+              txnBuilder.date ??= txnDate.value.toUtc();
 
               var txn = txnBuilder.build();
               await Get.find<AppDatabase>().addOrUpdateTransaction(txn);
