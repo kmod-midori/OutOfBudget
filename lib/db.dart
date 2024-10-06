@@ -1,3 +1,4 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get/get.dart';
@@ -31,18 +32,18 @@ class AppDatabase {
 
   AppDatabase(this.db);
 
-  Future<List<Account>> getAccounts() async {
+  Future<BuiltList<Account>> getAccounts() async {
     var txn = db.transaction(_accountsStoreName, idbModeReadOnly);
     var store = txn.objectStore(_accountsStoreName);
 
-    var accounts = <Account>[];
+    var accounts = ListBuilder<Account>();
 
     var cursor = store.openCursor(autoAdvance: true);
     await for (var record in cursor) {
       accounts.add(deserializeAccount(record.value));
     }
 
-    return accounts;
+    return accounts.build();
   }
 
   Future<Account?> getAccount(String id) async {
@@ -157,7 +158,10 @@ class AppDatabase {
     var index = store.index("date");
     var cursor = index.openCursor(
       autoAdvance: true,
-      range: KeyRange.bound(start, end),
+      range: KeyRange.bound(
+        start.millisecondsSinceEpoch,
+        end.millisecondsSinceEpoch,
+      ),
       direction: "prev",
     );
 
@@ -174,7 +178,7 @@ class AppDatabase {
   }
 }
 
-AsyncSnapshot<List<Account>> useAccounts() {
+AsyncSnapshot<BuiltList<Account>> useAccounts() {
   final accountsFuture = useMemoized(
     () => Get.find<AppDatabase>().getAccounts(),
   );
