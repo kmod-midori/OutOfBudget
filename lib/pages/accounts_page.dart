@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/models/account.dart';
 import 'package:out_of_budget/pages/edit_account_page.dart';
+import 'package:out_of_budget/pages/edit_transaction_page.dart';
 import 'package:out_of_budget/widgets/account_bar_chart.dart';
 
 class AccountsPage extends HookWidget {
@@ -11,10 +12,7 @@ class AccountsPage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accountsFuture = useMemoized(
-      () => Get.find<AppDatabase>().getAccounts(),
-    );
-    final accounts = useFuture(accountsFuture);
+    final accounts = useAccounts();
 
     switch (accounts.connectionState) {
       case ConnectionState.waiting:
@@ -56,11 +54,7 @@ class AccountsPage extends HookWidget {
               );
             },
             onLongPress: () {
-              Get.to(
-                EditAccountPage(
-                  id: account.id,
-                ),
-              );
+              Get.to(() => EditAccountPage(id: account.id));
             },
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -92,10 +86,24 @@ class AccountSheet extends HookWidget {
           const SizedBox(height: 16),
           Text(account.name, style: textTheme.titleLarge),
           const SizedBox(height: 8),
-          ElevatedButton.icon(
-            onPressed: () {},
-            label: const Text("更新余额"),
-            icon: const Icon(Icons.edit),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {},
+                label: const Text("更新余额"),
+                icon: const Icon(Icons.edit),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Get.back();
+                  Get.to(() => EditTransactionPage(accountId: account.id));
+                },
+                label: const Text("记录收支"),
+                icon: const Icon(Icons.add),
+              )
+            ],
           ),
           const SizedBox(height: 32),
           Expanded(child: AccountBarChart()),

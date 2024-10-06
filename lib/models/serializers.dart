@@ -6,10 +6,22 @@ import 'transaction.dart';
 
 part 'serializers.g.dart';
 
-@SerializersFor([Account, Transaction])
+@SerializersFor([Account, MyTransaction])
 final Serializers serializers = _$serializers;
 final standardSerializers = (serializers.toBuilder()
       ..addPlugin(
         StandardJsonPlugin(),
       ))
     .build();
+
+Account deserializeAccount(Object json) =>
+    standardSerializers.deserializeWith(Account.serializer, json)!;
+
+Object serializeAccount(Account account) =>
+    standardSerializers.serializeWith(Account.serializer, account)!;
+
+MyTransaction deserializeTransaction(Object json) =>
+    standardSerializers.deserializeWith(MyTransaction.serializer, json)!;
+
+Object serializeTransaction(MyTransaction transaction) =>
+    standardSerializers.serializeWith(MyTransaction.serializer, transaction)!;

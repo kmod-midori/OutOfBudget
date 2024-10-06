@@ -3,8 +3,9 @@ import 'package:built_value/serializer.dart';
 
 part 'transaction.g.dart';
 
-abstract class Transaction implements Built<Transaction, TransactionBuilder> {
-  static Serializer<Transaction> get serializer => _$transactionSerializer;
+abstract class MyTransaction
+    implements Built<MyTransaction, MyTransactionBuilder> {
+  static Serializer<MyTransaction> get serializer => _$myTransactionSerializer;
 
   String get id;
   String get accountId;
@@ -12,7 +13,9 @@ abstract class Transaction implements Built<Transaction, TransactionBuilder> {
   int get amount;
   DateTime get date;
 
-  Transaction._();
-  factory Transaction([void Function(TransactionBuilder) updates]) =
-      _$Transaction;
+  String get displayAmount => (amount / 100.0).toStringAsFixed(2);
+
+  MyTransaction._();
+  factory MyTransaction([void Function(MyTransactionBuilder) updates]) =
+      _$MyTransaction;
 }

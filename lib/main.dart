@@ -4,8 +4,11 @@ import 'package:get/get.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/pages/accounts_page.dart';
 import 'package:out_of_budget/pages/edit_account_page.dart';
+import 'package:out_of_budget/pages/edit_transaction_page.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   final appDb = await initDb();
   Get.put(appDb);
 
@@ -41,7 +44,7 @@ class MyHomePage extends HookWidget {
       case 0:
         fab = FloatingActionButton(
           onPressed: () {
-            Get.to(EditAccountPage());
+            Get.to(() => EditTransactionPage());
           },
           tooltip: '记录收支',
           child: const Icon(Icons.add),
@@ -57,7 +60,7 @@ class MyHomePage extends HookWidget {
         actions.add(IconButton(
           icon: const Icon(Icons.add_card),
           onPressed: () {
-            Get.to(EditAccountPage());
+            Get.to(() => EditAccountPage());
           },
         ));
         break;

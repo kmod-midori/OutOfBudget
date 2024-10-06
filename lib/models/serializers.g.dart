@@ -8,7 +8,7 @@ part of 'serializers.dart';
 
 Serializers _$serializers = (new Serializers().toBuilder()
       ..add(Account.serializer)
-      ..add(Transaction.serializer))
+      ..add(MyTransaction.serializer))
     .build();
 
 // ignore_for_file: deprecated_member_use_from_same_package,type=lint

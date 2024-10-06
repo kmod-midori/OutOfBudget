@@ -6,16 +6,17 @@ part of 'transaction.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<Transaction> _$transactionSerializer = new _$TransactionSerializer();
+Serializer<MyTransaction> _$myTransactionSerializer =
+    new _$MyTransactionSerializer();
 
-class _$TransactionSerializer implements StructuredSerializer<Transaction> {
+class _$MyTransactionSerializer implements StructuredSerializer<MyTransaction> {
   @override
-  final Iterable<Type> types = const [Transaction, _$Transaction];
+  final Iterable<Type> types = const [MyTransaction, _$MyTransaction];
   @override
-  final String wireName = 'Transaction';
+  final String wireName = 'MyTransaction';
 
   @override
-  Iterable<Object?> serialize(Serializers serializers, Transaction object,
+  Iterable<Object?> serialize(Serializers serializers, MyTransaction object,
       {FullType specifiedType = FullType.unspecified}) {
     final result = <Object?>[
       'id',
@@ -37,9 +38,10 @@ class _$TransactionSerializer implements StructuredSerializer<Transaction> {
   }
 
   @override
-  Transaction deserialize(Serializers serializers, Iterable<Object?> serialized,
+  MyTransaction deserialize(
+      Serializers serializers, Iterable<Object?> serialized,
       {FullType specifiedType = FullType.unspecified}) {
-    final result = new TransactionBuilder();
+    final result = new MyTransactionBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
@@ -74,7 +76,7 @@ class _$TransactionSerializer implements StructuredSerializer<Transaction> {
   }
 }
 
-class _$Transaction extends Transaction {
+class _$MyTransaction extends MyTransaction {
   @override
   final String id;
   @override
@@ -86,36 +88,36 @@ class _$Transaction extends Transaction {
   @override
   final DateTime date;
 
-  factory _$Transaction([void Function(TransactionBuilder)? updates]) =>
-      (new TransactionBuilder()..update(updates))._build();
+  factory _$MyTransaction([void Function(MyTransactionBuilder)? updates]) =>
+      (new MyTransactionBuilder()..update(updates))._build();
 
-  _$Transaction._(
+  _$MyTransaction._(
       {required this.id,
       required this.accountId,
       required this.description,
       required this.amount,
       required this.date})
       : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, r'Transaction', 'id');
+    BuiltValueNullFieldError.checkNotNull(id, r'MyTransaction', 'id');
     BuiltValueNullFieldError.checkNotNull(
-        accountId, r'Transaction', 'accountId');
+        accountId, r'MyTransaction', 'accountId');
     BuiltValueNullFieldError.checkNotNull(
-        description, r'Transaction', 'description');
-    BuiltValueNullFieldError.checkNotNull(amount, r'Transaction', 'amount');
-    BuiltValueNullFieldError.checkNotNull(date, r'Transaction', 'date');
+        description, r'MyTransaction', 'description');
+    BuiltValueNullFieldError.checkNotNull(amount, r'MyTransaction', 'amount');
+    BuiltValueNullFieldError.checkNotNull(date, r'MyTransaction', 'date');
   }
 
   @override
-  Transaction rebuild(void Function(TransactionBuilder) updates) =>
+  MyTransaction rebuild(void Function(MyTransactionBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  TransactionBuilder toBuilder() => new TransactionBuilder()..replace(this);
+  MyTransactionBuilder toBuilder() => new MyTransactionBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is Transaction &&
+    return other is MyTransaction &&
         id == other.id &&
         accountId == other.accountId &&
         description == other.description &&
@@ -137,7 +139,7 @@ class _$Transaction extends Transaction {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'Transaction')
+    return (newBuiltValueToStringHelper(r'MyTransaction')
           ..add('id', id)
           ..add('accountId', accountId)
           ..add('description', description)
@@ -147,8 +149,9 @@ class _$Transaction extends Transaction {
   }
 }
 
-class TransactionBuilder implements Builder<Transaction, TransactionBuilder> {
-  _$Transaction? _$v;
+class MyTransactionBuilder
+    implements Builder<MyTransaction, MyTransactionBuilder> {
+  _$MyTransaction? _$v;
 
   String? _id;
   String? get id => _$this._id;
@@ -170,9 +173,9 @@ class TransactionBuilder implements Builder<Transaction, TransactionBuilder> {
   DateTime? get date => _$this._date;
   set date(DateTime? date) => _$this._date = date;
 
-  TransactionBuilder();
+  MyTransactionBuilder();
 
-  TransactionBuilder get _$this {
+  MyTransactionBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
       _id = $v.id;
@@ -186,31 +189,32 @@ class TransactionBuilder implements Builder<Transaction, TransactionBuilder> {
   }
 
   @override
-  void replace(Transaction other) {
+  void replace(MyTransaction other) {
     ArgumentError.checkNotNull(other, 'other');
-    _$v = other as _$Transaction;
+    _$v = other as _$MyTransaction;
   }
 
   @override
-  void update(void Function(TransactionBuilder)? updates) {
+  void update(void Function(MyTransactionBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  Transaction build() => _build();
+  MyTransaction build() => _build();
 
-  _$Transaction _build() {
+  _$MyTransaction _build() {
     final _$result = _$v ??
-        new _$Transaction._(
-            id: BuiltValueNullFieldError.checkNotNull(id, r'Transaction', 'id'),
+        new _$MyTransaction._(
+            id: BuiltValueNullFieldError.checkNotNull(
+                id, r'MyTransaction', 'id'),
             accountId: BuiltValueNullFieldError.checkNotNull(
-                accountId, r'Transaction', 'accountId'),
+                accountId, r'MyTransaction', 'accountId'),
             description: BuiltValueNullFieldError.checkNotNull(
-                description, r'Transaction', 'description'),
+                description, r'MyTransaction', 'description'),
             amount: BuiltValueNullFieldError.checkNotNull(
-                amount, r'Transaction', 'amount'),
+                amount, r'MyTransaction', 'amount'),
             date: BuiltValueNullFieldError.checkNotNull(
-                date, r'Transaction', 'date'));
+                date, r'MyTransaction', 'date'));
     replace(_$result);
     return _$result;
   }

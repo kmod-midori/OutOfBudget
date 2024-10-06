@@ -14,15 +14,7 @@ class EditAccountPage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    var accountFuture = useMemoized(() {
-      if (id == null) {
-        return Future.value(null);
-      }
-
-      return Get.find<AppDatabase>().getAccount(id!);
-    });
-    var account = useFuture(accountFuture);
-
+    var account = useAccount(id);
     switch (account.connectionState) {
       case ConnectionState.waiting:
         return const Center(child: CircularProgressIndicator());
@@ -31,7 +23,6 @@ class EditAccountPage extends HookWidget {
       default:
         return const Center(child: Text("Error"));
     }
-
     var accountData = account.data;
 
     var nameController = useTextEditingController.fromValue(
