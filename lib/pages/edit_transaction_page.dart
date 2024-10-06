@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/models/transaction.dart';
+import 'package:out_of_budget/models/transaction_kind.dart';
 
 class EditTransactionPage extends HookWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -163,6 +164,7 @@ class EditTransactionPage extends HookWidget {
                 return;
               }
               _formKey.currentState!.save();
+              txnBuilder.kind ??= TransactionKind.normal;
               txnBuilder.id ??= nanoid();
               txnBuilder.date ??= DateTime.now().toUtc();
 

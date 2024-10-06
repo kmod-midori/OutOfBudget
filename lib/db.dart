@@ -114,7 +114,7 @@ class AppDatabase {
     await txn.completed;
   }
 
-  Future<List<MyTransaction>> getTransactionsByAccnoutId(
+  Future<BuiltList<MyTransaction>> getTransactionsByAccnoutId(
     String accountId,
   ) async {
     var txn = db.transaction("transactions", idbModeReadOnly);
@@ -123,31 +123,31 @@ class AppDatabase {
     var index = store.index("accountId");
     var cursor = index.openCursor(key: accountId, autoAdvance: true);
 
-    var txns = <MyTransaction>[];
+    var txns = ListBuilder<MyTransaction>();
     await for (var record in cursor) {
       txns.add(deserializeTransaction(record.value));
     }
     txns.sort((a, b) => b.date.compareTo(a.date));
 
-    return txns;
+    return txns.build();
   }
 
-  Future<List<MyTransaction>> getAllTransactions() async {
+  Future<BuiltList<MyTransaction>> getAllTransactions() async {
     var txn = db.transaction("transactions", idbModeReadOnly);
     var store = txn.objectStore("transactions");
 
     var index = store.index("date");
     var cursor = index.openCursor(autoAdvance: true, direction: "prev");
 
-    var txns = <MyTransaction>[];
+    var txns = ListBuilder<MyTransaction>();
     await for (var record in cursor) {
       txns.add(deserializeTransaction(record.value));
     }
 
-    return txns;
+    return txns.build();
   }
 
-  Future<List<MyTransaction>> getTransactionsByDateRange(
+  Future<BuiltList<MyTransaction>> getTransactionsByDateRange(
     String? accountId,
     DateTime start,
     DateTime end,
@@ -165,7 +165,7 @@ class AppDatabase {
       direction: "prev",
     );
 
-    var txns = <MyTransaction>[];
+    var txns = ListBuilder<MyTransaction>();
     await for (var record in cursor) {
       var txn = deserializeTransaction(record.value);
 
@@ -174,36 +174,38 @@ class AppDatabase {
       }
     }
 
-    return txns;
+    return txns.build();
   }
 }
 
-AsyncSnapshot<BuiltList<Account>> useAccounts() {
-  final accountsFuture = useMemoized(
-    () => Get.find<AppDatabase>().getAccounts(),
-  );
-
-  return useFuture(accountsFuture);
+AsyncSnapshot<T> useMemoizedFuture<T>(
+  Future<T> Function() valueBuilder, [
+  List<Object?> keys = const <Object>[],
+]) {
+  final futureResult = useMemoized(valueBuilder, keys);
+  return useFuture(futureResult);
 }
 
-AsyncSnapshot<Account?> useAccount(String? id) {
-  final accountFuture = useMemoized(
+AsyncSnapshot<BuiltList<Account>> useAccounts() =>
+    useMemoizedFuture(() => Get.find<AppDatabase>().getAccounts());
+
+AsyncSnapshot<Account?> useAccount(String? id) => useMemoizedFuture(
     () => id == null
         ? Future.value(null)
         : Get.find<AppDatabase>().getAccount(id),
-    [id],
-  );
+    [id]);
 
-  return useFuture(accountFuture);
-}
+AsyncSnapshot<BuiltList<MyTransaction>> useTransactionsByAccountId(
+  String? accountId,
+) =>
+    useMemoizedFuture(
+        () => accountId == null
+            ? Future.value(BuiltList<MyTransaction>())
+            : Get.find<AppDatabase>().getTransactionsByAccnoutId(accountId),
+        [accountId]);
 
-AsyncSnapshot<MyTransaction?> useTransaction(String? id) {
-  final txnFuture = useMemoized(
+AsyncSnapshot<MyTransaction?> useTransaction(String? id) => useMemoizedFuture(
     () => id == null
         ? Future.value(null)
         : Get.find<AppDatabase>().getTransaction(id),
-    [id],
-  );
-
-  return useFuture(txnFuture);
-}
+    [id]);

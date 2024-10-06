@@ -25,45 +25,70 @@ class AccountsPage extends HookWidget {
 
     final accountsData = accounts.data!;
 
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
     return ListView.builder(
       itemBuilder: (BuildContext context, int index) {
         var account = accountsData[index];
-
-        var inner = ListTile(
-          leading: const Icon(Icons.credit_card),
-          title: Text("${account.name} (${account.id})"),
-          subtitle: Text('2023年10月8日'),
-          trailing: Text(
-            "114.51",
-            style: textTheme.titleLarge,
-          ),
-        );
-
-        return Card(
-          clipBehavior: Clip.antiAlias,
-          margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-          child: InkWell(
-            onTap: () {
-              showModalBottomSheet<void>(
-                context: context,
-                builder: (context) => AccountSheet(
-                  account: account,
-                ),
-              );
-            },
-            onLongPress: () {
-              Get.to(() => EditAccountPage(id: account.id));
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: inner,
-            ),
-          ),
-        );
+        return AccountCard(account: account);
       },
       itemCount: accountsData.length,
+    );
+  }
+}
+
+class AccountCard extends HookWidget {
+  final Account account;
+
+  const AccountCard({super.key, required this.account});
+
+  @override
+  Widget build(BuildContext context) {
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    final transactions = useTransactionsByAccountId(account.id);
+
+    final balanceInCents = useMemoized(
+      () => transactions.data?.fold<int>(0, (p, e) => p + e.amount),
+      [transactions.data],
+    );
+    final balanceText = balanceInCents == null
+        ? "-"
+        : (balanceInCents / 100).toStringAsFixed(2);
+
+    final latestTxn = transactions.data?.first;
+    final latestTxnDateText = latestTxn == null
+        ? "无记录"
+        : "${latestTxn.date.year}年${latestTxn.date.month}月${latestTxn.date.day}日";
+
+    var inner = ListTile(
+      leading: const Icon(Icons.credit_card),
+      title: Text("${account.name} (${account.id})"),
+      subtitle: Text(latestTxnDateText),
+      trailing: Text(
+        balanceText,
+        style: textTheme.titleLarge,
+      ),
+    );
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      child: InkWell(
+        onTap: () {
+          showModalBottomSheet<void>(
+            context: context,
+            builder: (context) => AccountSheet(
+              account: account,
+            ),
+          );
+        },
+        onLongPress: () {
+          Get.to(() => EditAccountPage(id: account.id));
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: inner,
+        ),
+      ),
     );
   }
 }
