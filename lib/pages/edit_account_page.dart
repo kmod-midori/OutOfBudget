@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/models/account.dart';
+import 'package:out_of_budget/models/transaction.dart';
+import 'package:out_of_budget/widgets/amount_form_field.dart';
 
 class EditAccountPage extends HookWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -25,9 +27,8 @@ class EditAccountPage extends HookWidget {
     }
     var accountData = account.data;
 
-    var nameController = useTextEditingController.fromValue(
-      TextEditingValue(text: accountData?.name ?? ""),
-    );
+    var accountBuilder = accountData?.toBuilder() ?? AccountBuilder();
+    var initialBalance = 0;
 
     var body = Form(
       key: _formKey,
@@ -43,24 +44,17 @@ class EditAccountPage extends HookWidget {
               }
               return null;
             },
-            controller: nameController,
+            onSaved: (newValue) {
+              accountBuilder.name = newValue!;
+            },
           ),
           if (id == null)
-            TextFormField(
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: false,
-              ),
-              decoration: const InputDecoration(
-                label: Text("初始余额"),
-              ),
-              validator: (String? value) {
-                if (value == null || value.isEmpty) {
-                  return '不可为空';
-                }
-                return null;
+            AmountFormField(
+              label: "初始余额",
+              initialValue: 0,
+              onSaved: (newValue) {
+                initialBalance = newValue!;
               },
-              initialValue: "0.0",
             ),
         ],
       ),
@@ -85,22 +79,30 @@ class EditAccountPage extends HookWidget {
                 if (!_formKey.currentState!.validate()) {
                   return;
                 }
+                _formKey.currentState!.save();
 
-                Account account;
-
-                if (accountData == null) {
-                  account = Account(
+                MyTransaction? createTxn;
+                if (accountBuilder.id == null) {
+                  accountBuilder.id = nanoid();
+                  createTxn = MyTransaction(
                     (b) => b
                       ..id = nanoid()
-                      ..name = nameController.text,
-                  );
-                } else {
-                  account = accountData.rebuild(
-                    (b) => b..name = nameController.text,
+                      ..accountId = accountBuilder.id
+                      ..description = "账户创建"
+                      ..date = DateTime.now().toUtc()
+                      ..amount = initialBalance,
                   );
                 }
 
-                await Get.find<AppDatabase>().addOrUpdateAccount(account);
+                await Get.find<AppDatabase>().addOrUpdateAccount(
+                  accountBuilder.build(),
+                );
+                if (createTxn != null) {
+                  await Get.find<AppDatabase>().addOrUpdateTransaction(
+                    createTxn,
+                  );
+                }
+
                 Get.back();
               },
             ),

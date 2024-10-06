@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/models/transaction.dart';
-import 'package:out_of_budget/models/transaction_kind.dart';
+import 'package:out_of_budget/widgets/amount_form_field.dart';
 
 class EditTransactionPage extends HookWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -40,13 +40,6 @@ class EditTransactionPage extends HookWidget {
         return const Center(child: Text("Error"));
     }
     var transactionData = transaction.data;
-
-    var amountController = useTextEditingController.fromValue(
-      TextEditingValue(text: transactionData?.displayAmount ?? "0.00"),
-    );
-    var descriptionController = useTextEditingController.fromValue(
-      TextEditingValue(text: transactionData?.description ?? ""),
-    );
 
     var initialSign = 1;
     var initialAmount = 0;
@@ -91,34 +84,13 @@ class EditTransactionPage extends HookWidget {
             },
           ),
           const SizedBox(height: 16.0),
-          TextFormField(
-            controller: amountController,
-            keyboardType: const TextInputType.numberWithOptions(
-              decimal: true,
-              signed: false,
-            ),
-            decoration: const InputDecoration(
-              label: Text("金额"),
-            ),
-            validator: (String? value) {
-              if (value == null || value.isEmpty) {
-                return '不可为空';
-              }
-              var parsed = double.tryParse(value);
-              if (parsed == null) {
-                return '金额需为数字';
-              }
-              if (parsed == 0.0) {
-                return '金额不可为0';
-              }
-              return null;
-            },
+          AmountFormField(
+            initialValue: transactionData?.amount ?? 0,
+            label: "金额",
             onSaved: (newValue) {
-              var parsed = double.parse(newValue!);
-              if (parsed > 0) {
-                parsed = parsed * amountSign.value;
+              if (newValue != null) {
+                txnBuilder.amount = newValue;
               }
-              txnBuilder.amount = (parsed * 100.0).toInt();
             },
           ),
           const SizedBox(height: 16.0),
@@ -146,7 +118,7 @@ class EditTransactionPage extends HookWidget {
             onPressed: () async {
               var value = await showDatePicker(
                 context: context,
-                initialDate: txnBuilder.date ?? DateTime.now(),
+                initialDate: txnDate.value,
                 firstDate: DateTime(2000),
                 lastDate: DateTime.now(),
               );
@@ -163,10 +135,10 @@ class EditTransactionPage extends HookWidget {
             icon: const Icon(Icons.calendar_today),
           ),
           TextFormField(
+            initialValue: transactionData?.description,
             decoration: const InputDecoration(
               label: Text("备注"),
             ),
-            controller: descriptionController,
             onSaved: (newValue) {
               txnBuilder.description = newValue ?? "";
             },
@@ -188,7 +160,6 @@ class EditTransactionPage extends HookWidget {
               }
               _formKey.currentState!.save();
 
-              txnBuilder.kind ??= TransactionKind.normal;
               txnBuilder.id ??= nanoid();
               txnBuilder.date ??= txnDate.value.toUtc();
 

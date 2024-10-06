@@ -54,7 +54,7 @@ class AccountCard extends HookWidget {
         ? "-"
         : (balanceInCents / 100).toStringAsFixed(2);
 
-    final latestTxn = transactions.data?.first;
+    final latestTxn = transactions.data?.firstOrNull;
     final latestTxnDateText = latestTxn == null
         ? "无记录"
         : "${latestTxn.date.year}年${latestTxn.date.month}月${latestTxn.date.day}日";

@@ -13,7 +13,6 @@ abstract class MyTransaction
   String get description;
   int get amount;
   DateTime get date;
-  TransactionKind get kind;
 
   String get displayAmount => (amount / 100.0).toStringAsFixed(2);
 
