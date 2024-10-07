@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:out_of_budget/utils/money.dart';
 
 class AmountFormField extends TextFormField {
   AmountFormField({
@@ -7,7 +8,7 @@ class AmountFormField extends TextFormField {
     void Function(int? newValue)? onSaved,
     required String label,
   }) : super(
-          initialValue: (initialValue / 100.0).toStringAsFixed(2),
+          initialValue: formatFromCents(initialValue),
           decoration: InputDecoration(
             label: Text(label),
           ),
@@ -29,9 +30,7 @@ class AmountFormField extends TextFormField {
             return null;
           },
           onSaved: (newValue) {
-            var parsed = double.parse(newValue!);
-            var intAmount = (parsed * 100.0).toInt();
-            onSaved?.call(intAmount);
+            onSaved?.call(parseToCents(newValue!));
           },
         );
 }

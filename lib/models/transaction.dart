@@ -1,7 +1,5 @@
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:out_of_budget/models/transaction_kind.dart';
-
 part 'transaction.g.dart';
 
 abstract class MyTransaction
@@ -14,6 +12,7 @@ abstract class MyTransaction
   int get amount;
   DateTime get date;
 
+  DateTime get dateLocal => date.toLocal();
   String get displayAmount => (amount / 100.0).toStringAsFixed(2);
 
   MyTransaction._();

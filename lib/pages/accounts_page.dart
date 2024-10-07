@@ -1,3 +1,4 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get/get.dart';
@@ -5,6 +6,8 @@ import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/models/account.dart';
 import 'package:out_of_budget/pages/edit_account_page.dart';
 import 'package:out_of_budget/pages/edit_transaction_page.dart';
+import 'package:out_of_budget/utils/date.dart';
+import 'package:out_of_budget/utils/money.dart';
 import 'package:out_of_budget/widgets/account_bar_chart.dart';
 
 class AccountsPage extends HookWidget {
@@ -13,22 +16,49 @@ class AccountsPage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final accounts = useAccounts();
+    final transactions = useAllTransactions();
 
-    switch (accounts.connectionState) {
-      case ConnectionState.waiting:
-        return const Center(child: CircularProgressIndicator());
-      case ConnectionState.done:
-        break;
-      default:
-        return const Center(child: Text("Error"));
+    if (accounts.connectionState != ConnectionState.done ||
+        transactions.connectionState != ConnectionState.done) {
+      return const Center(child: CircularProgressIndicator());
     }
 
     final accountsData = accounts.data!;
+    final transactionsData = transactions.data!;
+
+    final balanceByAccount = useMemoized(() {
+      return transactionsData.fold(
+        MapBuilder<String, (int, DateTime)>(),
+        (accs, txn) {
+          var accountId = txn.accountId;
+          var amount = txn.amount;
+          var date = txn.date;
+
+          var lastValue = accs[accountId];
+          if (lastValue == null) {
+            accs[accountId] = (amount, date);
+          } else {
+            accs[accountId] = (lastValue.$1 + amount, date);
+          }
+
+          return accs;
+        },
+      ).build();
+    }, [accountsData, transactionsData]);
+    final totalBalance = useMemoized(() {
+      return balanceByAccount.values.fold(0, (acc, item) => acc + item.$1);
+    }, [balanceByAccount]);
 
     return ListView.builder(
       itemBuilder: (BuildContext context, int index) {
         var account = accountsData[index];
-        return AccountCard(account: account);
+        var balanceData = balanceByAccount[account.id];
+
+        return AccountCard(
+          account: account,
+          balanceInCents: balanceData?.$1 ?? 0,
+          latestTxnDate: balanceData?.$2 ?? DateTime.now(),
+        );
       },
       itemCount: accountsData.length,
     );
@@ -37,27 +67,22 @@ class AccountsPage extends HookWidget {
 
 class AccountCard extends HookWidget {
   final Account account;
+  final int balanceInCents;
+  final DateTime latestTxnDate;
 
-  const AccountCard({super.key, required this.account});
+  const AccountCard({
+    super.key,
+    required this.account,
+    required this.balanceInCents,
+    required this.latestTxnDate,
+  });
 
   @override
   Widget build(BuildContext context) {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    final transactions = useTransactionsByAccountId(account.id);
-
-    final balanceInCents = useMemoized(
-      () => transactions.data?.fold<int>(0, (p, e) => p + e.amount),
-      [transactions.data],
-    );
-    final balanceText = balanceInCents == null
-        ? "-"
-        : (balanceInCents / 100).toStringAsFixed(2);
-
-    final latestTxn = transactions.data?.firstOrNull;
-    final latestTxnDateText = latestTxn == null
-        ? "无记录"
-        : "${latestTxn.date.year}年${latestTxn.date.month}月${latestTxn.date.day}日";
+    final balanceText = formatFromCents(balanceInCents);
+    final latestTxnDateText = formatToLocalDate(latestTxnDate);
 
     var inner = ListTile(
       leading: const Icon(Icons.credit_card),

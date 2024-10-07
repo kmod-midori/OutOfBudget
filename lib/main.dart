@@ -68,10 +68,23 @@ class MyHomePage extends HookWidget {
         break;
     }
 
+    String title = "";
+    switch (currentPage.value) {
+      case 0:
+        title = "账户总览";
+        break;
+      case 1:
+        title = "统计";
+        break;
+      case 2:
+        title = "设置";
+        break;
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text("Title"),
+        title: Text(title),
         actions: actions,
       ),
       body: PageView.builder(

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/models/transaction.dart';
+import 'package:out_of_budget/utils/date.dart';
 import 'package:out_of_budget/widgets/amount_form_field.dart';
 
 class EditTransactionPage extends HookWidget {
@@ -161,7 +162,7 @@ class EditTransactionPage extends HookWidget {
               _formKey.currentState!.save();
 
               txnBuilder.id ??= nanoid();
-              txnBuilder.date ??= txnDate.value.toUtc();
+              txnBuilder.date ??= simplifyToDate(txnDate.value);
 
               var txn = txnBuilder.build();
               await Get.find<AppDatabase>().addOrUpdateTransaction(txn);

@@ -137,7 +137,7 @@ class AppDatabase {
     var store = txn.objectStore("transactions");
 
     var index = store.index("date");
-    var cursor = index.openCursor(autoAdvance: true, direction: "prev");
+    var cursor = index.openCursor(autoAdvance: true, direction: "next");
 
     var txns = ListBuilder<MyTransaction>();
     await for (var record in cursor) {
@@ -159,8 +159,8 @@ class AppDatabase {
     var cursor = index.openCursor(
       autoAdvance: true,
       range: KeyRange.bound(
-        start.millisecondsSinceEpoch,
-        end.millisecondsSinceEpoch,
+        start.microsecondsSinceEpoch,
+        end.microsecondsSinceEpoch,
       ),
       direction: "prev",
     );
@@ -194,6 +194,9 @@ AsyncSnapshot<Account?> useAccount(String? id) => useMemoizedFuture(
         ? Future.value(null)
         : Get.find<AppDatabase>().getAccount(id),
     [id]);
+
+AsyncSnapshot<BuiltList<MyTransaction>> useAllTransactions() =>
+    useMemoizedFuture(() => Get.find<AppDatabase>().getAllTransactions());
 
 AsyncSnapshot<BuiltList<MyTransaction>> useTransactionsByAccountId(
   String? accountId,

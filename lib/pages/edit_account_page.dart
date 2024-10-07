@@ -5,6 +5,7 @@ import 'package:nanoid/nanoid.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/models/account.dart';
 import 'package:out_of_budget/models/transaction.dart';
+import 'package:out_of_budget/utils/date.dart';
 import 'package:out_of_budget/widgets/amount_form_field.dart';
 
 class EditAccountPage extends HookWidget {
@@ -89,7 +90,7 @@ class EditAccountPage extends HookWidget {
                       ..id = nanoid()
                       ..accountId = accountBuilder.id
                       ..description = "账户创建"
-                      ..date = DateTime.now().toUtc()
+                      ..date = simplifyToDate(DateTime.now())
                       ..amount = initialBalance,
                   );
                 }
