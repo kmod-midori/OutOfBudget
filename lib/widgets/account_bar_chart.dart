@@ -6,7 +6,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:out_of_budget/models/transaction.dart';
 import 'package:out_of_budget/utils/date.dart';
 
+/// A bar chart that shows the balance of an account over time.
 class AccountBarChart extends HookConsumerWidget {
+  /// The transactions to be displayed. Should be sorted in ascending (old-new) order.
   final BuiltList<MyTransaction> transactions;
 
   const AccountBarChart({super.key, required this.transactions});
@@ -14,6 +16,10 @@ class AccountBarChart extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+
+    if (transactions.isEmpty) {
+      return const Center(child: Text("暂无数据"));
+    }
 
     final currentRange = useState(30);
 
@@ -26,7 +32,7 @@ class AccountBarChart extends HookConsumerWidget {
       var currentSum = 0;
       var spots = <int, int>{};
 
-      for (var txn in transactions) {
+      for (var txn in transactions.reversed) {
         currentSum += txn.amount;
 
         var daysFromStart = txn.date.difference(dateStart).inDays;

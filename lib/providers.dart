@@ -95,6 +95,6 @@ Future<BuiltList<MyTransaction>> transactionsByAccountId(
   TransactionsByAccountIdRef ref,
   String accountId,
 ) async {
-  ref.watch(transactionsNotifierProvider);
-  return await Get.find<AppDatabase>().getTransactionsByAccnoutId(accountId);
+  var allTxns = await ref.watch(transactionsNotifierProvider.future);
+  return allTxns.where((txn) => txn.accountId == accountId).toBuiltList();
 }

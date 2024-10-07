@@ -1,4 +1,7 @@
+// ignore_for_file: avoid_web_libraries_in_flutter
+
 import 'package:built_collection/built_collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get/get.dart';
@@ -7,7 +10,15 @@ import 'package:out_of_budget/models/account.dart';
 import 'package:out_of_budget/models/serializers.dart';
 import 'package:out_of_budget/models/transaction.dart';
 
+import 'package:web/web.dart';
+import 'dart:js_util';
+
 Future<AppDatabase> initDb() async {
+  if (kIsWeb) {
+    var persisted = await promiseToFuture(window.navigator.storage.persist());
+    print("Storage persisted: $persisted");
+  }
+
   Database db = await getIdbFactory()!.open(
     "app.db",
     version: 1,
@@ -116,64 +127,16 @@ class AppDatabase {
     await txn.completed;
   }
 
-  Future<BuiltList<MyTransaction>> getTransactionsByAccnoutId(
-    String accountId,
-  ) async {
-    var txn = db.transaction("transactions", idbModeReadOnly);
-    var store = txn.objectStore("transactions");
-
-    var index = store.index("accountId");
-    var cursor = index.openCursor(key: accountId, autoAdvance: true);
-
-    var txns = ListBuilder<MyTransaction>();
-    await for (var record in cursor) {
-      txns.add(deserializeTransaction(record.value));
-    }
-    txns.sort((a, b) => a.date.compareTo(b.date));
-
-    return txns.build();
-  }
-
   Future<BuiltList<MyTransaction>> getAllTransactions() async {
     var txn = db.transaction("transactions", idbModeReadOnly);
     var store = txn.objectStore("transactions");
 
     var index = store.index("date");
-    var cursor = index.openCursor(autoAdvance: true, direction: "next");
+    var cursor = index.openCursor(autoAdvance: true, direction: "prev");
 
     var txns = ListBuilder<MyTransaction>();
     await for (var record in cursor) {
       txns.add(deserializeTransaction(record.value));
-    }
-
-    return txns.build();
-  }
-
-  Future<BuiltList<MyTransaction>> getTransactionsByDateRange(
-    String? accountId,
-    DateTime start,
-    DateTime end,
-  ) async {
-    var txn = db.transaction("transactions", idbModeReadOnly);
-    var store = txn.objectStore("transactions");
-
-    var index = store.index("date");
-    var cursor = index.openCursor(
-      autoAdvance: true,
-      range: KeyRange.bound(
-        start.microsecondsSinceEpoch,
-        end.microsecondsSinceEpoch,
-      ),
-      direction: "prev",
-    );
-
-    var txns = ListBuilder<MyTransaction>();
-    await for (var record in cursor) {
-      var txn = deserializeTransaction(record.value);
-
-      if (accountId == null || txn.accountId == accountId) {
-        txns.add(txn);
-      }
     }
 
     return txns.build();
@@ -189,22 +152,15 @@ AsyncSnapshot<T> useMemoizedFuture<T>(
 }
 
 AsyncSnapshot<Account?> useAccount(String? id) => useMemoizedFuture(
-    () => id == null
-        ? Future.value(null)
-        : Get.find<AppDatabase>().getAccount(id),
-    [id]);
-
-AsyncSnapshot<BuiltList<MyTransaction>> useTransactionsByAccountId(
-  String? accountId,
-) =>
-    useMemoizedFuture(
-        () => accountId == null
-            ? Future.value(BuiltList<MyTransaction>())
-            : Get.find<AppDatabase>().getTransactionsByAccnoutId(accountId),
-        [accountId]);
+      () => id == null
+          ? Future.value(null)
+          : Get.find<AppDatabase>().getAccount(id),
+      [id],
+    );
 
 AsyncSnapshot<MyTransaction?> useTransaction(String? id) => useMemoizedFuture(
-    () => id == null
-        ? Future.value(null)
-        : Get.find<AppDatabase>().getTransaction(id),
-    [id]);
+      () => id == null
+          ? Future.value(null)
+          : Get.find<AppDatabase>().getTransaction(id),
+      [id],
+    );

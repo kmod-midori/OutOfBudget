@@ -49,46 +49,77 @@ class AnalyticsPage extends HookConsumerWidget {
     );
 
     var totalAmountChart = AccountBarChart(transactions: transactions);
+    var accountPieChart = pieChartSections.isEmpty
+        ? const Center(child: Text("暂无数据"))
+        : PieChart(
+            PieChartData(
+              sections: pieChartSections,
+              sectionsSpace: 1,
+              centerSpaceRadius: double.infinity,
+              titleSunbeamLayout: true,
+            ),
+          );
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text("总资产", style: theme.textTheme.titleMedium),
-                ),
-                Expanded(
-                  child: totalAmountChart,
-                ),
-              ],
-            ),
+    var totalAmountView = Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text("总资产", style: theme.textTheme.titleMedium),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: totalAmountChart,
           ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text("分布", style: theme.textTheme.titleMedium),
-                ),
-                Expanded(
-                  child: PieChart(PieChartData(
-                    sections: pieChartSections,
-                    sectionsSpace: 1,
-                    centerSpaceRadius: 32,
-                    titleSunbeamLayout: true,
-                  )),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
+
+    var accountPieView = Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text("分布", style: theme.textTheme.titleMedium),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: accountPieChart,
+          ),
+        ),
+      ],
+    );
+
+    var orientation = MediaQuery.of(context).orientation;
+
+    switch (orientation) {
+      case Orientation.portrait:
+        return Column(
+          children: [
+            Expanded(
+              flex: 1,
+              child: totalAmountView,
+            ),
+            Expanded(
+              flex: 1,
+              child: accountPieView,
+            ),
+          ],
+        );
+      case Orientation.landscape:
+        return Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: totalAmountView,
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(
+              flex: 1,
+              child: accountPieView,
+            ),
+          ],
+        );
+    }
   }
 }
