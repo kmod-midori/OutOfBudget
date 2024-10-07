@@ -1,57 +1,48 @@
-import 'package:built_collection/built_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get/get.dart';
-import 'package:out_of_budget/db.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:out_of_budget/models/account.dart';
 import 'package:out_of_budget/pages/edit_account_page.dart';
 import 'package:out_of_budget/pages/edit_transaction_page.dart';
+import 'package:out_of_budget/providers.dart';
 import 'package:out_of_budget/utils/date.dart';
 import 'package:out_of_budget/utils/money.dart';
 import 'package:out_of_budget/widgets/account_bar_chart.dart';
 
-class AccountsPage extends HookWidget {
+class AccountsPage extends HookConsumerWidget {
   const AccountsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final accounts = useAccounts();
-    final transactions = useAllTransactions();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accounts = ref.watch(accountsNotifierProvider).value;
+    final transactions = ref.watch(transactionsNotifierProvider).value;
 
-    if (accounts.connectionState != ConnectionState.done ||
-        transactions.connectionState != ConnectionState.done) {
+    if (accounts == null || transactions == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final accountsData = accounts.data!;
-    final transactionsData = transactions.data!;
+    final balanceByAccount = ref.watch(latestBalanceByAccountProvider);
+    final totalBalance = ref.watch(totalBalanceProvider);
 
-    final balanceByAccount = useMemoized(() {
-      return transactionsData.fold(
-        MapBuilder<String, (int, DateTime)>(),
-        (accs, txn) {
-          var accountId = txn.accountId;
-          var amount = txn.amount;
-          var date = txn.date;
-
-          var lastValue = accs[accountId];
-          if (lastValue == null) {
-            accs[accountId] = (amount, date);
-          } else {
-            accs[accountId] = (lastValue.$1 + amount, date);
-          }
-
-          return accs;
-        },
-      ).build();
-    }, [accountsData, transactionsData]);
-    final totalBalance = useMemoized(() {
-      return balanceByAccount.values.fold(0, (acc, item) => acc + item.$1);
-    }, [balanceByAccount]);
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
     return ListView.builder(
       itemBuilder: (BuildContext context, int index) {
-        var account = accountsData[index];
+        if (index == 0) {
+          return ListTile(
+            leading: const Icon(Icons.account_balance_wallet),
+            title: const Text("总余额"),
+            trailing: Text(
+              formatFromCents(totalBalance),
+              style: textTheme.titleLarge,
+            ),
+          );
+        }
+
+        index = index - 1;
+
+        var account = accounts[index];
         var balanceData = balanceByAccount[account.id];
 
         return AccountCard(
@@ -60,7 +51,7 @@ class AccountsPage extends HookWidget {
           latestTxnDate: balanceData?.$2 ?? DateTime.now(),
         );
       },
-      itemCount: accountsData.length,
+      itemCount: accounts.length + 1,
     );
   }
 }

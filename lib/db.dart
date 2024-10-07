@@ -186,17 +186,11 @@ AsyncSnapshot<T> useMemoizedFuture<T>(
   return useFuture(futureResult);
 }
 
-AsyncSnapshot<BuiltList<Account>> useAccounts() =>
-    useMemoizedFuture(() => Get.find<AppDatabase>().getAccounts());
-
 AsyncSnapshot<Account?> useAccount(String? id) => useMemoizedFuture(
     () => id == null
         ? Future.value(null)
         : Get.find<AppDatabase>().getAccount(id),
     [id]);
-
-AsyncSnapshot<BuiltList<MyTransaction>> useAllTransactions() =>
-    useMemoizedFuture(() => Get.find<AppDatabase>().getAllTransactions());
 
 AsyncSnapshot<BuiltList<MyTransaction>> useTransactionsByAccountId(
   String? accountId,

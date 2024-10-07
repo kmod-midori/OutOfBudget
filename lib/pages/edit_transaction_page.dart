@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/models/transaction.dart';
+import 'package:out_of_budget/providers.dart';
 import 'package:out_of_budget/utils/date.dart';
 import 'package:out_of_budget/widgets/amount_form_field.dart';
 
-class EditTransactionPage extends HookWidget {
+class EditTransactionPage extends HookConsumerWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final String? id;
@@ -19,26 +21,15 @@ class EditTransactionPage extends HookWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    var accounts = useAccounts();
-    switch (accounts.connectionState) {
-      case ConnectionState.waiting:
-        return const Center(child: CircularProgressIndicator());
-      case ConnectionState.done:
-        break;
-      default:
-        return const Center(child: Text("Error"));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accounts = ref.watch(accountsNotifierProvider).value;
+    if (accounts == null) {
+      return const Center(child: CircularProgressIndicator());
     }
-    var accountsData = accounts.data!;
 
     var transaction = useTransaction(id);
-    switch (transaction.connectionState) {
-      case ConnectionState.waiting:
-        return const Center(child: CircularProgressIndicator());
-      case ConnectionState.done:
-        break;
-      default:
-        return const Center(child: Text("Error"));
+    if (transaction.connectionState != ConnectionState.done) {
+      return const Center(child: CircularProgressIndicator());
     }
     var transactionData = transaction.data;
 
@@ -66,7 +57,7 @@ class EditTransactionPage extends HookWidget {
             decoration: const InputDecoration(
               label: Text("账户"),
             ),
-            items: accountsData.map((account) {
+            items: accounts.map((account) {
               return DropdownMenuItem<String>(
                 value: account.id,
                 child: Text(account.name),
@@ -165,7 +156,9 @@ class EditTransactionPage extends HookWidget {
               txnBuilder.date ??= simplifyToDate(txnDate.value);
 
               var txn = txnBuilder.build();
-              await Get.find<AppDatabase>().addOrUpdateTransaction(txn);
+              await ref
+                  .read(transactionsNotifierProvider.notifier)
+                  .addOrUpdate(txn);
 
               Get.back();
             },

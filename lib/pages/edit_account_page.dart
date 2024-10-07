@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get/get.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/models/account.dart';
 import 'package:out_of_budget/models/transaction.dart';
+import 'package:out_of_budget/providers.dart';
 import 'package:out_of_budget/utils/date.dart';
 import 'package:out_of_budget/widgets/amount_form_field.dart';
 
-class EditAccountPage extends HookWidget {
+class EditAccountPage extends HookConsumerWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final String? id;
@@ -16,15 +17,10 @@ class EditAccountPage extends HookWidget {
   EditAccountPage({super.key, this.id});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     var account = useAccount(id);
-    switch (account.connectionState) {
-      case ConnectionState.waiting:
-        return const Center(child: CircularProgressIndicator());
-      case ConnectionState.done:
-        break;
-      default:
-        return const Center(child: Text("Error"));
+    if (account.connectionState != ConnectionState.done) {
+      return const Center(child: CircularProgressIndicator());
     }
     var accountData = account.data;
 
@@ -70,7 +66,9 @@ class EditAccountPage extends HookWidget {
               IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () async {
-                  await Get.find<AppDatabase>().deleteAccount(id!);
+                  await ref
+                      .read(accountsNotifierProvider.notifier)
+                      .delete(accountBuilder.id!);
                   Get.back();
                 },
               ),
@@ -95,13 +93,13 @@ class EditAccountPage extends HookWidget {
                   );
                 }
 
-                await Get.find<AppDatabase>().addOrUpdateAccount(
-                  accountBuilder.build(),
-                );
+                await ref
+                    .read(accountsNotifierProvider.notifier)
+                    .addOrUpdate(accountBuilder.build());
                 if (createTxn != null) {
-                  await Get.find<AppDatabase>().addOrUpdateTransaction(
-                    createTxn,
-                  );
+                  await ref
+                      .read(transactionsNotifierProvider.notifier)
+                      .addOrUpdate(createTxn);
                 }
 
                 Get.back();
