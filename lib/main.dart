@@ -4,8 +4,10 @@ import 'package:get/get.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:out_of_budget/db.dart';
 import 'package:out_of_budget/pages/accounts_page.dart';
+import 'package:out_of_budget/pages/analytics_page.dart';
 import 'package:out_of_budget/pages/edit_account_page.dart';
 import 'package:out_of_budget/pages/edit_transaction_page.dart';
+import 'package:out_of_budget/pages/settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,9 +98,9 @@ class MyHomePage extends HookWidget {
             case 0:
               return const AccountsPage();
             case 1:
-              return const Text("1");
+              return const AnalyticsPage();
             case 2:
-              return const Text("2");
+              return const SettingsPage();
           }
           return null;
         },

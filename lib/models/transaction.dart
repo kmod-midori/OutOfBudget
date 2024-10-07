@@ -10,6 +10,8 @@ abstract class MyTransaction
   String get accountId;
   String get description;
   int get amount;
+
+  /// Date in UTC
   DateTime get date;
 
   DateTime get dateLocal => date.toLocal();

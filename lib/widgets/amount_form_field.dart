@@ -27,6 +27,9 @@ class AmountFormField extends TextFormField {
             if (parsed == 0.0) {
               return '金额不可为0';
             }
+            if (parsed < 0.0) {
+              return '金额不可为负数';
+            }
             return null;
           },
           onSaved: (newValue) {

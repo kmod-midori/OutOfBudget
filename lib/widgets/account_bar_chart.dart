@@ -1,17 +1,51 @@
+import 'package:built_collection/built_collection.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:out_of_budget/models/transaction.dart';
+import 'package:out_of_budget/utils/date.dart';
 
-class AccountBarChart extends HookWidget {
-  const AccountBarChart({super.key});
+class AccountBarChart extends HookConsumerWidget {
+  final BuiltList<MyTransaction> transactions;
+
+  const AccountBarChart({super.key, required this.transactions});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     final currentRange = useState(30);
 
-    final endDate = DateTime(2024, 9, 30);
+    final dateEnd = simplifyToDate(DateTime.now());
+    final dateStart = currentRange.value == -1
+        ? transactions.firstOrNull?.date ?? dateEnd
+        : dateEnd.subtract(Duration(days: currentRange.value));
+
+    final spots = useMemoized(() {
+      var currentSum = 0;
+      var spots = <int, int>{};
+
+      for (var txn in transactions) {
+        currentSum += txn.amount;
+
+        var daysFromStart = txn.date.difference(dateStart).inDays;
+        if (daysFromStart > currentRange.value && currentRange.value != -1) {
+          continue;
+        }
+
+        if (daysFromStart < 0) {
+          daysFromStart = 0;
+        }
+
+        spots[daysFromStart] = currentSum ~/ 100;
+      }
+
+      var lastDayOffset = dateEnd.difference(dateStart).inDays;
+      spots[lastDayOffset] = currentSum ~/ 100;
+
+      return spots;
+    }, [transactions, dateStart, dateEnd]);
 
     const disabledTitles = AxisTitles(
       sideTitles: SideTitles(showTitles: false),
@@ -20,9 +54,11 @@ class AccountBarChart extends HookWidget {
     var bottomTitles = AxisTitles(
       sideTitles: SideTitles(
         showTitles: true,
+        minIncluded: false,
+        maxIncluded: false,
         reservedSize: 24,
         getTitlesWidget: (value, meta) {
-          var date = endDate.add(Duration(days: (value - meta.max).toInt()));
+          var date = dateStart.add(Duration(days: (value).toInt())).toLocal();
 
           return SideTitleWidget(
             axisSide: meta.axisSide,
@@ -60,6 +96,16 @@ class AccountBarChart extends HookWidget {
       fontSize: 14,
     );
 
+    final bar = LineChartBarData(
+      color: theme.colorScheme.primary,
+      spots: spots.entries
+          .map((entry) => FlSpot(
+                entry.key.toDouble(),
+                entry.value.toDouble(),
+              ))
+          .toList(),
+    );
+
     final chartData = LineChartData(
       titlesData: FlTitlesData(
         topTitles: disabledTitles,
@@ -69,28 +115,29 @@ class AccountBarChart extends HookWidget {
       ),
       lineTouchData: LineTouchData(
         touchTooltipData: LineTouchTooltipData(
+          fitInsideHorizontally: true,
+          fitInsideVertically: true,
           getTooltipColor: (touchedSpot) => theme.colorScheme.primary,
           getTooltipItems: (touchedSpots) {
-            return touchedSpots
-                .map((spot) =>
-                    LineTooltipItem(spot.y.toString(), tooltipTextStyle))
-                .toList();
+            var ret = <LineTooltipItem>[];
+
+            for (var spot in touchedSpots) {
+              var date = formatToLocalDate(
+                dateStart.add(Duration(days: spot.x.toInt())),
+              );
+
+              ret.add(LineTooltipItem(
+                "$date\n${spot.y.toInt()}",
+                tooltipTextStyle,
+              ));
+            }
+
+            return ret;
           },
         ),
       ),
-      lineBarsData: [
-        LineChartBarData(
-          color: theme.colorScheme.primary,
-          spots: [
-            FlSpot(1, 2),
-            FlSpot(2, 2),
-            FlSpot(3, 3),
-            FlSpot(18, 114.51),
-            FlSpot(65, 90 * 1000),
-            FlSpot(180, 120 * 1000)
-          ],
-        )
-      ],
+      lineBarsData: [bar],
+      minY: 0.0,
     );
 
     return Column(

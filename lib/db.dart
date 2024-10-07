@@ -67,22 +67,8 @@ class AppDatabase {
   }
 
   Future<void> deleteAccount(String id) async {
-    var txn = db.transactionList([
-      _accountsStoreName,
-      _transactionsStoreName,
-    ], idbModeReadWrite);
-
+    var txn = db.transaction(_accountsStoreName, idbModeReadWrite);
     await txn.objectStore(_accountsStoreName).delete(id);
-
-    var txnStore = txn.objectStore(_transactionsStoreName);
-    var cursor = txnStore.index("accountId").openCursor(
-          key: id,
-          autoAdvance: true,
-        );
-    await for (var record in cursor) {
-      await txnStore.delete(record.primaryKey);
-    }
-
     await txn.completed;
   }
 
@@ -98,11 +84,14 @@ class AppDatabase {
     return deserializeTransaction(record);
   }
 
-  Future<void> addOrUpdateTransaction(MyTransaction myTxn) async {
+  Future<void> addOrUpdateTransactions(Iterable<MyTransaction> myTxn) async {
     var txn = db.transaction("transactions", idbModeReadWrite);
     var store = txn.objectStore("transactions");
 
-    await store.put(serializeTransaction(myTxn));
+    for (var txn in myTxn) {
+      await store.put(serializeTransaction(txn));
+    }
+
     await txn.completed;
   }
 
@@ -111,6 +100,19 @@ class AppDatabase {
     var store = txn.objectStore("transactions");
 
     await store.delete(id);
+    await txn.completed;
+  }
+
+  Future<void> deleteTransactionsByAccountId(String accountId) async {
+    var txn = db.transaction("transactions", idbModeReadWrite);
+    var store = txn.objectStore("transactions");
+
+    var cursor =
+        store.index("accountId").openCursor(key: accountId, autoAdvance: true);
+    await for (var record in cursor) {
+      await store.delete(record.primaryKey);
+    }
+
     await txn.completed;
   }
 
@@ -127,7 +129,7 @@ class AppDatabase {
     await for (var record in cursor) {
       txns.add(deserializeTransaction(record.value));
     }
-    txns.sort((a, b) => b.date.compareTo(a.date));
+    txns.sort((a, b) => a.date.compareTo(b.date));
 
     return txns.build();
   }

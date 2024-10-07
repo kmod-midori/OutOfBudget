@@ -81,7 +81,7 @@ class EditTransactionPage extends HookConsumerWidget {
             label: "金额",
             onSaved: (newValue) {
               if (newValue != null) {
-                txnBuilder.amount = newValue;
+                txnBuilder.amount = newValue * amountSign.value;
               }
             },
           ),
@@ -158,7 +158,7 @@ class EditTransactionPage extends HookConsumerWidget {
               var txn = txnBuilder.build();
               await ref
                   .read(transactionsNotifierProvider.notifier)
-                  .addOrUpdate(txn);
+                  .addOrUpdate([txn]);
 
               Get.back();
             },

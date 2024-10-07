@@ -36,8 +36,8 @@ class TransactionsNotifier extends _$TransactionsNotifier {
     return await Get.find<AppDatabase>().getAllTransactions();
   }
 
-  Future<void> addOrUpdate(MyTransaction transaction) async {
-    await Get.find<AppDatabase>().addOrUpdateTransaction(transaction);
+  Future<void> addOrUpdate(Iterable<MyTransaction> transactions) async {
+    await Get.find<AppDatabase>().addOrUpdateTransactions(transactions);
 
     ref.invalidateSelf();
     await future;
@@ -45,6 +45,13 @@ class TransactionsNotifier extends _$TransactionsNotifier {
 
   Future<void> delete(String id) async {
     await Get.find<AppDatabase>().deleteTransaction(id);
+
+    ref.invalidateSelf();
+    await future;
+  }
+
+  Future<void> deleteByAccountId(String accountId) async {
+    await Get.find<AppDatabase>().deleteTransactionsByAccountId(accountId);
 
     ref.invalidateSelf();
     await future;
@@ -81,4 +88,13 @@ BuiltMap<String, (int, DateTime)> latestBalanceByAccount(
 int totalBalance(TotalBalanceRef ref) {
   final balanceByAccount = ref.watch(latestBalanceByAccountProvider);
   return balanceByAccount.values.fold(0, (acc, item) => acc + item.$1);
+}
+
+@riverpod
+Future<BuiltList<MyTransaction>> transactionsByAccountId(
+  TransactionsByAccountIdRef ref,
+  String accountId,
+) async {
+  ref.watch(transactionsNotifierProvider);
+  return await Get.find<AppDatabase>().getTransactionsByAccnoutId(accountId);
 }

@@ -16,9 +16,8 @@ class AccountsPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accounts = ref.watch(accountsNotifierProvider).value;
-    final transactions = ref.watch(transactionsNotifierProvider).value;
 
-    if (accounts == null || transactions == null) {
+    if (accounts == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -109,14 +108,20 @@ class AccountCard extends HookWidget {
   }
 }
 
-class AccountSheet extends HookWidget {
+class AccountSheet extends HookConsumerWidget {
   final Account account;
 
   const AccountSheet({super.key, required this.account});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final TextTheme textTheme = Theme.of(context).textTheme;
+
+    final transactions =
+        ref.watch(transactionsByAccountIdProvider(account.id)).value;
+    if (transactions == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return SizedBox(
       height: 600,
@@ -147,7 +152,7 @@ class AccountSheet extends HookWidget {
             ],
           ),
           const SizedBox(height: 32),
-          Expanded(child: AccountBarChart()),
+          Expanded(child: AccountBarChart(transactions: transactions)),
           const SizedBox(height: 32),
         ],
       ),
