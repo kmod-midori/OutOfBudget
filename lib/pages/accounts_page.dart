@@ -86,7 +86,7 @@ class AccountCard extends HookWidget {
 
     var inner = ListTile(
       leading: const Icon(Icons.credit_card),
-      title: Text("${account.name} (${account.id})"),
+      title: Text(account.name),
       subtitle: Text(latestTxnDateText),
       trailing: Text(
         balanceText,
