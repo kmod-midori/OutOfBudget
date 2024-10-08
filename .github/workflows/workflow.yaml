@@ -15,7 +15,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          chache: true
+          chche: true
 
       - name: Install dependencies
         run: flutter pub get
