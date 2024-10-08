@@ -1,16 +1,32 @@
-String formatFromCents(int cents, {bool compact = false}) {
+enum SignMode {
+  always,
+  never,
+  onlyNegative,
+}
+
+String formatFromCents(int cents, {signMode = SignMode.onlyNegative}) {
+  var centsAbs = cents.abs();
+
+  var dollars = centsAbs ~/ 100;
+  var centsPart = centsAbs % 100;
+
+  var centsString = centsPart.toString().padLeft(2, "0");
+
   var sign = "";
-  if (cents < 0) {
-    sign = "-";
-    cents = -cents;
-  }
-  var dollars = cents ~/ 100;
-  if (dollars > 999 && compact) {
-    return "$sign${dollars ~/ 1000}k";
+
+  switch (signMode) {
+    case SignMode.always:
+      sign = cents.isNegative ? "-" : "+";
+      break;
+    case SignMode.never:
+      sign = "";
+      break;
+    case SignMode.onlyNegative:
+      sign = cents.isNegative ? "-" : "";
+      break;
   }
 
-  var centsPart = (cents % 100).toString().padLeft(2, "0");
-  return "$sign$dollars.$centsPart";
+  return "$sign$dollars.$centsString";
 }
 
 int parseToCents(String amount) {

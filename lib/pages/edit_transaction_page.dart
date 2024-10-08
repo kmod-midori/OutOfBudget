@@ -8,6 +8,7 @@ import 'package:out_of_budget/models/transaction.dart';
 import 'package:out_of_budget/providers.dart';
 import 'package:out_of_budget/utils/date.dart';
 import 'package:out_of_budget/widgets/amount_form_field.dart';
+import 'package:out_of_budget/widgets/confirmation_dialog.dart';
 
 class EditTransactionPage extends HookConsumerWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -147,6 +148,29 @@ class EditTransactionPage extends HookConsumerWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(id == null ? "记录收支" : "编辑记录"),
         actions: [
+          if (id != null)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () async {
+                var confirmed = await showConfirmationDialog(
+                  context: context,
+                  title: const Text("删除记录"),
+                  content: const Text("确定要删除这条记录吗？"),
+                  confirmLabel: const Text("删除"),
+                  cancelLabel: const Text("取消"),
+                );
+
+                if (confirmed != true) {
+                  return;
+                }
+
+                await ref
+                    .read(transactionsNotifierProvider.notifier)
+                    .delete(id!);
+
+                Get.back();
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.save),
             onPressed: () async {

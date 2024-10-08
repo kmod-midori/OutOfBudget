@@ -7,8 +7,9 @@ class AmountFormField extends TextFormField {
     required int initialValue,
     void Function(int? newValue)? onSaved,
     required String label,
+    bool allowZero = false,
   }) : super(
-          initialValue: formatFromCents(initialValue),
+          initialValue: formatFromCents(initialValue, signMode: SignMode.never),
           decoration: InputDecoration(
             label: Text(label),
             border: const OutlineInputBorder(),
@@ -25,7 +26,7 @@ class AmountFormField extends TextFormField {
             if (parsed == null) {
               return '金额需为数字';
             }
-            if (parsed == 0.0) {
+            if (parsed == 0.0 && !allowZero) {
               return '金额不可为0';
             }
             if (parsed < 0.0) {

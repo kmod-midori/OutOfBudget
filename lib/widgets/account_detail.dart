@@ -70,11 +70,26 @@ class AccountDetail extends HookConsumerWidget {
             ListView.builder(
               itemBuilder: (BuildContext context, int index) {
                 var txn = transactions[index];
+                var description = txn.description;
+
+                if (description.isEmpty) {
+                  if (txn.amount > 0) {
+                    description = "收入";
+                  } else {
+                    description = "支出";
+                  }
+                }
+
                 return ListTile(
-                  title: Text(txn.description),
-                  subtitle: Text(formatFromCents(txn.amount)),
-                  trailing: Text(formatToLocalDate(txn.date)),
-                  onTap: () {},
+                  title: Text(description),
+                  subtitle: Text(formatToLocalDate(txn.date)),
+                  trailing: Text(
+                    formatFromCents(txn.amount, signMode: SignMode.always),
+                    style: textTheme.titleMedium,
+                  ),
+                  onTap: () {
+                    Get.to(() => EditTransactionPage(id: txn.id));
+                  },
                 );
               },
               itemCount: transactions.length,

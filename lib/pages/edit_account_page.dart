@@ -9,6 +9,7 @@ import 'package:out_of_budget/models/transaction.dart';
 import 'package:out_of_budget/providers.dart';
 import 'package:out_of_budget/utils/date.dart';
 import 'package:out_of_budget/widgets/amount_form_field.dart';
+import 'package:out_of_budget/widgets/confirmation_dialog.dart';
 
 class EditAccountPage extends HookConsumerWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -52,9 +53,11 @@ class EditAccountPage extends HookConsumerWidget {
             },
           ),
           if (id == null) ...[
+            const SizedBox(height: 16.0),
             AmountFormField(
               label: "初始余额",
               initialValue: 0,
+              allowZero: true,
               onSaved: (newValue) {
                 initialBalance = newValue!;
               },
@@ -92,28 +95,12 @@ class EditAccountPage extends HookConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.delete),
                 onPressed: () async {
-                  var confirmed = await showDialog<bool>(
+                  var confirmed = await showConfirmationDialog(
                     context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text("删除账户"),
-                        content: const Text("将删除账户及其所有记录，确认删除？"),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(false);
-                            },
-                            child: const Text("取消"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(true);
-                            },
-                            child: const Text("删除"),
-                          ),
-                        ],
-                      );
-                    },
+                    title: const Text("删除账户"),
+                    content: const Text("将删除账户及其所有记录，确认删除？"),
+                    confirmLabel: const Text("删除"),
+                    cancelLabel: const Text("取消"),
                   );
 
                   if (confirmed != true) {
