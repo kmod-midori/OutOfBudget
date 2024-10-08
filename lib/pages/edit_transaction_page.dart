@@ -51,11 +51,12 @@ class EditTransactionPage extends HookConsumerWidget {
     var body = Form(
       key: _formKey,
       child: ListView(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(16.0),
         children: [
           DropdownButtonFormField<String>(
             decoration: const InputDecoration(
               label: Text("账户"),
+              border: OutlineInputBorder(),
             ),
             items: accounts.map((account) {
               return DropdownMenuItem<String>(
@@ -126,10 +127,12 @@ class EditTransactionPage extends HookConsumerWidget {
             ),
             icon: const Icon(Icons.calendar_today),
           ),
+          const SizedBox(height: 16.0),
           TextFormField(
             initialValue: transactionData?.description,
             decoration: const InputDecoration(
               label: Text("备注"),
+              border: OutlineInputBorder(),
             ),
             onSaved: (newValue) {
               txnBuilder.description = newValue ?? "";

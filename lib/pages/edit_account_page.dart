@@ -33,11 +33,12 @@ class EditAccountPage extends HookConsumerWidget {
     var body = Form(
       key: _formKey,
       child: ListView(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(16.0),
         children: [
           TextFormField(
             decoration: const InputDecoration(
               label: Text("账户名称"),
+              border: OutlineInputBorder(),
             ),
             validator: (String? value) {
               if (value == null || value.isEmpty) {

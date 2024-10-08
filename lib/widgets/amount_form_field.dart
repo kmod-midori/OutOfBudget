@@ -11,6 +11,7 @@ class AmountFormField extends TextFormField {
           initialValue: formatFromCents(initialValue),
           decoration: InputDecoration(
             label: Text(label),
+            border: const OutlineInputBorder(),
           ),
           keyboardType: const TextInputType.numberWithOptions(
             decimal: true,
